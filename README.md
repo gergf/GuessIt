@@ -14,4 +14,6 @@ Let's get started. Good luck!
 
 Sphinxy salutes you!
 
-![Sphinxy salutes you!](docs/images/sphinxy_v1.webp)
+<p align="center">
+    <img src="docs/images/sphinxy_v1.webp" alt="Sphinxy" width="200"/>
+</p>
