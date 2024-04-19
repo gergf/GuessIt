@@ -1,0 +1,5 @@
+[project]
+name = "GuessIt"
+version = "0.0.1"
+description = "GuessIt is a puzzle name for those who like to be challenged."
+authors = [{name="German Garcia", email="garferger@gmail.com"}]
