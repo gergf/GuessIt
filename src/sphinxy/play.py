@@ -37,9 +37,9 @@ def launch_game_loop():
     st.title(f"Sphinxy Game 🦁 - Level {current_level.number} -")
 
     user_guess = st.text_input(
-        "What's the secret key?",
+        label="Do you know the secret-key? Type it here and press enter.",
         key="user_guess",
-        help="When you think you know the secret-key, type it here and press enter.",
+        help="You can talk with Sphinxy to get hints about the secret-key using the chat below.",
     )
     if user_guess:
         logger.info(f"User guess: {user_guess}")
