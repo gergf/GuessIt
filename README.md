@@ -17,3 +17,11 @@ Sphinxy salutes you!
 <p align="center">
     <img src="docs/images/sphinxy_v1.webp" alt="Sphinxy" width="200"/>
 </p>
+
+### Set up
+
+These instructions are for development. User-level instructions WIP.
+
+0. Move to the project directory: `guessit/src/sphinxy`
+1. Start the LLM server: `python -m llama_cpp.server --model models/Meta-Llama-3-8B-Instruct-Q8_0.gguf --n_gpu -1`
+2. Start the game: `streamlit run play.py`
