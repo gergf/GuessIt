@@ -1,83 +1,87 @@
-import logging
+from pathlib import Path
+from collections import deque
 
-from ai import Sphinxy
-from levels import LEVELS
+import streamlit as st
+from openai import OpenAI
 
-logging.basicConfig(
-    filename="game.log", level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
+from ai import LLModel
+from game_logic import BasicGame, Level
+from utils import check_requirements
+from log_config import setup_logger
 
-INTRO_MESSAGE = """
-############################################
-Welcome to the game!
+logger = setup_logger()
 
-The goal is simple: there is a magic word you need to guess in order to complete each level.
-
-To obtain information, you will be able to interact with Sphinxy.
-
-Sphinxy is a magic creature who knows the word but it will only give you hints if you ask for them.
-She will hide the magic word from you, so you will need to trick her into revealing it.
-
-Each time you guess sucessfully, you will be able to move to the next level.
-Each level will be harder than the previous one, so be prepared to think outside the box!
-
-Let's get started. Good luck!
-############################################
-"""
-INSTRUCTIONS = "Type [Q] to ask a question. [A] to make a guess. [EXIT] to exit the game."
+# TODO: Move to config
+LLM_SERVER_URL: str = "http://localhost:8000/"
+MODEL_PATH: Path = Path("models/Meta-Llama-3-8B-Instruct-Q8_0.gguf")
 
 
-def main():
+def initialize_game():
     """
-    Entry point for the game in the terminal version.
+    Initializes or retrieves variables for the game from session state.
     """
-    logger.info("Starting game...")
-    print(INTRO_MESSAGE)
+    if "llm_model" not in st.session_state:
+        client = OpenAI(api_key="free_models", base_url=LLM_SERVER_URL + "v1")
+        st.session_state.llm_model = LLModel(model_path=str(MODEL_PATH), client=client)
+        st.session_state.session_memory = deque(maxlen=10)
+        st.session_state.game = BasicGame()
 
-    print("Sphinxy: Can you guess the magic word?")
-    print(INSTRUCTIONS)
 
-    # Start the game
-    n_levels = len(LEVELS)
-    current_level = 0
-    PLAY_GAME = True
-    while (current_level < n_levels) and (PLAY_GAME is True):
-        level = LEVELS[current_level]
-        print("------------------------------------")
-        print(f"Level {level.number}")
+def launch_game_loop():
+    """Entry point for the game in the terminal version."""
+    logger.info("Game started.")
+    initialize_game()
+    game = st.session_state.game
+    current_level: Level = game.get_current_level()
 
-        LEVEL_COMPLETED = False
-        while not LEVEL_COMPLETED:
-            # Get the user input
-            user_input = input("What do you want to do? [A/Q/EXIT]: ").lower()
-            if user_input == "q":
-                user_question = input("What is your question? ").lower()
-                q_answer = Sphinxy.answer_question(
-                    user_question, level.prompt, level.postprocessing
-                )
-                print(f"Sphinxy: {q_answer}")
-            elif user_input == "a":
-                user_guess = input("What is the magic word? ").lower()
-                if user_guess == level.answer:
-                    print(f"Congratulations! {level.answer} was the magic word!")
-                    LEVEL_COMPLETED = True
-            elif user_input == "exit":
-                print("Sphinxy: I'm sorry to see you leaving -- take care and see you soon!")
-                PLAY_GAME = False
-                break
+    st.title(f"Sphinxy Game 🦁 - Level {current_level.number} -")
+    prompt = st.chat_input("Ask Sphinxy a question (:")
+    user_guess = st.text_input("What's the secret key?", key="user_guess")
+    logger.info(f"User guess: {user_guess}")
+
+    if user_guess:
+        is_correct, msg = current_level.check_answer(user_guess)
+        st.chat_message("Sphinxy", avatar="🦁").markdown(msg)
+        if is_correct:
+            game.increase_one_level()
+            if game.is_game_over():
+                st.success("🎉🎉 Congratulations! You finished the game! 🎉🎉")
             else:
-                print("Invalid input. Please try again.")
-                continue
+                current_level = game.get_current_level()
+                congrats_msg = f"""
+                    "Welcome to Level {current_level.number} 🔥 This one will be harder 😈"
+                """
+                st.success(congrats_msg)
 
-        # Increase level of difficulty
-        current_level += 1
+    if prompt:
+        st.chat_message("user").markdown(prompt)
 
-    if current_level == n_levels:
-        print("------------------------------------")
-        print("Congratulations! You have completed the game.")
-        logger.info("Game completed successfully.")
+        # Call to the AI model
+        llm_model: LLModel = st.session_state.llm_model
+        response = llm_model.generate_response(prompt, current_level)
+
+        with st.chat_message("Spninxy", avatar="🦁"):
+            completed_message = ""
+            message = st.empty()
+
+            for chunk in response:
+                chnk_msg = chunk.choices[0].delta.content
+                if chnk_msg is not None:
+                    completed_message += chnk_msg
+                message.markdown(completed_message)
+
+        # Save the conversation in the session memory
+        st.session_state.session_memory.append([f"User: {prompt}"])
+        st.session_state.session_memory.append([f"AI: {completed_message}"])
+
+        logger.info(f"Session memory length: {len(st.session_state.session_memory)}")
+        logger.info(f"Session memory: {st.session_state.session_memory}")
 
 
 if __name__ == "__main__":
-    main()
+    st.session_state.requirements_checked = False
+    if not st.session_state.requirements_checked:
+        check_requirements(MODEL_PATH, LLM_SERVER_URL)
+        st.session_state.requirements_checked = True
+
+    launch_game_loop()
