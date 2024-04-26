@@ -57,9 +57,9 @@ class BasicGame(Game):
     """
 
     LEVELS = [
-        Level(1, "welcome"),
-        Level(2, "family"),
-        Level(3, "asper"),
+        Level(1, "paella"),
+        Level(2, "rocket"),
+        Level(3, "frankenstein"),
     ]
 
     def __init__(self) -> None:
