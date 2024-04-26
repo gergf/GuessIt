@@ -5,7 +5,7 @@ import streamlit as st
 from openai import OpenAI
 
 from ai import LLModel
-from game_logic import BasicGame, Level
+from levels import BasicGame, Level
 from utils import check_requirements
 from log_config import setup_logger
 

@@ -1,6 +1,6 @@
 from openai import OpenAI
 
-from game_logic import Level
+from levels import Level
 from log_config import setup_logger
 
 logger = setup_logger()
