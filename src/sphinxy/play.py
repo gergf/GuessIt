@@ -36,13 +36,12 @@ def launch_game_loop():
 
     st.title(f"Sphinxy Game 🦁 - Level {current_level.number} -")
 
-    # show previous interactions, if any
-    for interaction in st.session_state.session_memory:
-        avatar = "🦁" if interaction.role == "assistant" else None
-        with st.chat_message(interaction.role, avatar=avatar):
-            st.markdown(interaction.message)
-
-    if user_guess := st.text_input("What's the secret key?", key="user_guess"):
+    user_guess = st.text_input(
+        "What's the secret key?",
+        key="user_guess",
+        help="When you think you know the secret-key, type it here and press enter.",
+    )
+    if user_guess:
         logger.info(f"User guess: {user_guess}")
         is_correct, msg = current_level.check_answer(user_guess)
         st.chat_message("Sphinxy", avatar="🦁").markdown(msg)
@@ -56,6 +55,12 @@ def launch_game_loop():
                     "Welcome to Level {current_level.number} 🔥 This one will be harder 😈"
                 """
                 st.success(congrats_msg)
+
+    # show previous interactions, if any
+    for interaction in st.session_state.session_memory:
+        avatar = "🦁" if interaction.role == "assistant" else None
+        with st.chat_message(interaction.role, avatar=avatar):
+            st.markdown(interaction.message)
 
     if prompt := st.chat_input("Ask Sphinxy a question (:"):
         st.chat_message("user").markdown(prompt)
