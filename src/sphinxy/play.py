@@ -15,6 +15,15 @@ logger = setup_logger()
 LLM_SERVER_URL: str = "http://localhost:8000/"
 MODEL_PATH: Path = Path("models/Meta-Llama-3-8B-Instruct-Q8_0.gguf")
 
+GAME_HEADER = "Welcome adventurer! You just have entered Level 1 of the Sphinxy Game. 🦁"
+GAME_DESCRIPTION = """
+    Sphinxy is a magical and cute sphinx who is hidding a scret key to the next level.
+    Your goal is to convince Sphinxy to reveal the secret key to you by asking questions.
+    There are 5 levels in total. Each level is harder the previous one.
+    Can you reach the end of the game?
+    Good luck! 🍀
+"""
+
 
 def initialize_game():
     """
@@ -34,7 +43,12 @@ def launch_game_loop():
     game = st.session_state.game
     current_level: Level = game.get_current_level()
 
-    st.title(f"Sphinxy Game 🦁 - Level {current_level.number} -")
+    st.title(f"- Level {current_level.number} -")
+
+    if st.session_state.get("first_run", True):
+        st.subheader(GAME_HEADER, anchor=None, help=None, divider=False)
+        st.markdown(GAME_DESCRIPTION)
+        st.session_state.first_run = False
 
     user_guess = st.text_input(
         label="Do you know the secret-key? Type it here and press enter.",
