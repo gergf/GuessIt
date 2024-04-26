@@ -4,7 +4,7 @@ from collections import deque
 import streamlit as st
 from openai import OpenAI
 
-from ai import LLModel
+from ai import LLModel, Interaction
 from levels import BasicGame, Level
 from utils import check_requirements
 from log_config import setup_logger
@@ -58,7 +58,9 @@ def launch_game_loop():
 
         # Call to the AI model
         llm_model: LLModel = st.session_state.llm_model
-        response = llm_model.generate_response(prompt, current_level)
+        response = llm_model.generate_response(
+            prompt, current_level, memory=st.session_state.session_memory
+        )
 
         with st.chat_message("Spninxy", avatar="🦁"):
             completed_message = ""
@@ -71,16 +73,12 @@ def launch_game_loop():
                 message.markdown(completed_message)
 
         # Save the conversation in the session memory
-        st.session_state.session_memory.append([f"User: {prompt}"])
-        st.session_state.session_memory.append([f"AI: {completed_message}"])
-
-        logger.info(f"Session memory length: {len(st.session_state.session_memory)}")
-        logger.info(f"Session memory: {st.session_state.session_memory}")
+        st.session_state.session_memory.append(Interaction("user", prompt))
+        st.session_state.session_memory.append(Interaction("assistant", completed_message))
 
 
 if __name__ == "__main__":
-    st.session_state.requirements_checked = False
-    if not st.session_state.requirements_checked:
+    if not st.session_state.get("requirements_checked", False):
         check_requirements(MODEL_PATH, LLM_SERVER_URL)
         st.session_state.requirements_checked = True
 
