@@ -49,26 +49,44 @@ def launch_game_loop():
         st.subheader(GAME_HEADER, anchor=None, help=None, divider=False)
         st.markdown(GAME_DESCRIPTION)
         st.session_state.first_run = False
+    else:
+        # Start submit layout
+        left_side, space_for_button = st.columns([5, 1])
 
-    user_guess = st.text_input(
-        label="Do you know the secret-key? Type it here and press enter.",
-        key="user_guess",
-        help="You can talk with Sphinxy to get hints about the secret-key using the chat below.",
-    )
-    if user_guess:
-        logger.info(f"User guess: {user_guess}")
-        is_correct, msg = current_level.check_answer(user_guess)
-        st.chat_message("Sphinxy", avatar="🦁").markdown(msg)
-        if is_correct:
-            game.increase_one_level()
-            if game.is_game_over():
-                st.success("🎉🎉 Congratulations! You finished the game! 🎉🎉")
+        with left_side:
+            user_guess = st.text_input(
+                label="Do you know the secret-key?",
+                placeholder="Type the secret-key here...",
+                key="user_guess",
+                label_visibility="collapsed",
+            )
+
+        with space_for_button:
+            submit_button = st.button(
+                "Submit", key="submit_guess", help="Click to submit your guess.", type="primary"
+            )
+
+        if submit_button:
+            logger.info(f"User guess: {user_guess}")
+            if user_guess == "":
+                msg = "Oops! It looks like you forgot to type the secret-key. Try again."
+                is_correct = False
             else:
-                current_level = game.get_current_level()
-                congrats_msg = f"""
-                    "Welcome to Level {current_level.number} 🔥 This one will be harder 😈"
-                """
-                st.success(congrats_msg)
+                is_correct, msg = current_level.check_answer(user_guess)
+
+            # Make sphinxy answer in the chat
+            st.chat_message("Sphinxy", avatar="🦁").markdown(msg)
+
+            if is_correct:
+                game.increase_one_level()
+                if game.is_game_over():
+                    st.success("🎉🎉 Congratulations! You finished the game! 🎉🎉")
+                else:
+                    current_level = game.get_current_level()
+                    congrats_msg = f"""
+                        "Welcome to Level {current_level.number} 🔥 This one will be harder 😈"
+                    """
+                    st.success(congrats_msg)
 
     # show previous interactions, if any
     for interaction in st.session_state.session_memory:
