@@ -59,9 +59,8 @@ class LLM_Model:
 class Sphinxy:
     """
     Class to represent the Sphinxy in the game.
-    It implements an AI that can answer questions from the user.
-
-    The AI adapts to the level of the game based on the specific prompt and post-processing.
+    It creates the appropriate context for the LLM model to generate a response in a user-friendly
+    way and following the game's rules.
     """
 
     SPHINXY_SYSTEM_PROMPT = """
