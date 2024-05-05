@@ -94,28 +94,21 @@ def launch_game_loop():
         with st.chat_message(interaction.role, avatar=avatar):
             st.markdown(interaction.message)
 
+    # communicate with sphinxy
     if prompt := st.chat_input("Ask Sphinxy a question (:"):
         st.chat_message("user").markdown(prompt)
 
-        # Call to the AI model
-        llm_model: LLModel = st.session_state.llm_model
-        response = llm_model.generate_response(
-            prompt, current_level, memory=st.session_state.session_memory
-        )
-
         with st.chat_message("Spninxy", avatar="🦁"):
-            completed_message = ""
-            message = st.empty()
-
-            for chunk in response:
-                chnk_msg = chunk.choices[0].delta.content
-                if chnk_msg is not None:
-                    completed_message += chnk_msg
-                message.markdown(completed_message)
+            # Call to the AI model
+            llm_model: LLModel = st.session_state.llm_model
+            stream = llm_model.generate_response(
+                prompt, current_level, memory=st.session_state.session_memory
+            )
+            response = st.write_stream(stream)
 
         # Save the conversation in the session memory
         st.session_state.session_memory.append(Interaction("user", prompt))
-        st.session_state.session_memory.append(Interaction("assistant", completed_message))
+        st.session_state.session_memory.append(Interaction("assistant", response))
 
 
 if __name__ == "__main__":
