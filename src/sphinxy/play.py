@@ -27,13 +27,23 @@ GAME_DESCRIPTION = """
 
 def initialize_game():
     """Initializes or retrieves variables for the game from session state."""
-    if "llm_model" not in st.session_state:
+    if not st.session_state.get("game_initialized", False):
+        # Model initialization
         client = OpenAI(api_key="free_models", base_url=LLM_SERVER_URL + "v1")
         st.session_state.llm_model = LLM_Model(model_path=str(MODEL_PATH), client=client)
         st.session_state.sphinxy = Sphinxy(model=st.session_state.llm_model)
+
+        # Keeps track fo multiple interactions, which allows the user to have a proper conversation
         st.session_state.session_memory = deque(maxlen=10)
+
+        # Keeps track of the levels and the game state
         st.session_state.game = BasicGame()
+
+        # keep track of whether there is a request being processed
         st.session_state.processing_request = False
+
+        # Game initialization flag
+        st.session_state.game_initialized = True
 
 
 def handle_submit_guess(user_guess: str, game: BasicGame) -> BasicGame:
@@ -62,6 +72,35 @@ def handle_submit_guess(user_guess: str, game: BasicGame) -> BasicGame:
             st.success(congrats_msg)
 
     return game
+
+
+def handle_user_prompt(prompt: str, game: BasicGame):
+    """Handles the user's prompt and generates a response from Sphinxy."""
+    st.session_state.processing_request = True
+
+    with st.chat_message("Spninxy", avatar="🦁"):
+        # Call to the AI model
+        stream = st.session_state.sphinxy.generate_response(
+            prompt, game.get_current_level(), memory=st.session_state.session_memory
+        )
+
+        # Print message
+        response = ""
+        message = st.empty()
+        for chunk in stream:
+            chnk_msg = chunk.choices[0].delta.content
+            if chnk_msg is not None:
+                response += chnk_msg
+            message.markdown(response)
+
+            # Check if the conversation is finished to reactive the chat
+            finish_reason = chunk.choices[0].finish_reason
+            if finish_reason in ("stop", "length"):
+                st.session_state.processing_request = False
+
+    # Save the conversation in the session memory
+    st.session_state.session_memory.append(Interaction("user", prompt))
+    st.session_state.session_memory.append(Interaction("assistant", response))
 
 
 def launch_game_loop():
@@ -105,17 +144,7 @@ def launch_game_loop():
     # communicate with sphinxy
     if prompt := st.chat_input("Ask Sphinxy a question (:"):
         st.chat_message("user").markdown(prompt)
-
-        with st.chat_message("Spninxy", avatar="🦁"):
-            # Call to the AI model
-            stream = st.session_state.sphinxy.generate_response(
-                prompt, game.get_current_level(), memory=st.session_state.session_memory
-            )
-            response = st.write_stream(stream)
-
-        # Save the conversation in the session memory
-        st.session_state.session_memory.append(Interaction("user", prompt))
-        st.session_state.session_memory.append(Interaction("assistant", response))
+        handle_user_prompt(prompt, game)
 
 
 if __name__ == "__main__":
