@@ -4,7 +4,7 @@ from collections import deque
 import streamlit as st
 from openai import OpenAI
 
-from ai import Sphinxy, Interaction
+from ai import Sphinxy, Interaction, LLM_Model
 from levels import BasicGame, Level
 from utils import check_requirements
 from log_config import setup_logger
@@ -29,7 +29,8 @@ def initialize_game():
     """Initializes or retrieves variables for the game from session state."""
     if "llm_model" not in st.session_state:
         client = OpenAI(api_key="free_models", base_url=LLM_SERVER_URL + "v1")
-        st.session_state.llm_model = Sphinxy(model_path=str(MODEL_PATH), client=client)
+        st.session_state.llm_model = LLM_Model(model_path=str(MODEL_PATH), client=client)
+        st.session_state.sphinxy = Sphinxy(model=st.session_state.llm_model)
         st.session_state.session_memory = deque(maxlen=10)
         st.session_state.game = BasicGame()
         st.session_state.processing_request = False
@@ -107,8 +108,7 @@ def launch_game_loop():
 
         with st.chat_message("Spninxy", avatar="🦁"):
             # Call to the AI model
-            llm_model: Sphinxy = st.session_state.llm_model
-            stream = llm_model.generate_response(
+            stream = st.session_state.sphinxy.generate_response(
                 prompt, game.get_current_level(), memory=st.session_state.session_memory
             )
             response = st.write_stream(stream)

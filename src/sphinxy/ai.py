@@ -26,6 +26,36 @@ class Interaction:
             raise ValueError(f"Role must be a valid OPENAI role. Example {VALID_OPENAI_ROLES}")
 
 
+class LLM_Model:
+    """
+    Interface to interact with the LLM model.
+    """
+
+    def __init__(self, model_path: str, client: OpenAI) -> None:
+        self.model_path = model_path
+        self.client = client
+
+    def generate_response(
+        self, messages: List[Dict[str, str]], temperature: float = 0.4, stream: bool = True
+    ) -> str:
+        """
+        Generates a response to the user's prompt using the LLM model.
+
+        Args:
+            - messages: List of messages to feed the model. Note these need to follow the
+            OpenAI format for messages. It must be a list of dictionaries where the first element
+            is a valid row and the second element is the message.
+            - temperature: The temperature to use for the model.
+            - stream: Whether to stream the response or not.
+        """
+        return self.client.chat.completions.create(
+            model=self.model_path,
+            messages=messages,
+            temperature=temperature,
+            stream=stream,
+        )
+
+
 class Sphinxy:
     """
     Class to represent the Sphinxy in the game.
@@ -51,9 +81,8 @@ class Sphinxy:
         Sphinxy: Yes, you guessed it right! The magic key is PATATA. 🎉
     """
 
-    def __init__(self, model_path: str, client: OpenAI) -> None:
-        self.model_path = model_path
-        self.client = client
+    def __init__(self, model: LLM_Model) -> None:
+        self.model = model
 
     def generate_response(self, prompt: str, level: Level, memory: deque) -> str:
         """Generates a response to the user's prompt using the LLM model."""
@@ -80,11 +109,6 @@ class Sphinxy:
         for i, interaction in enumerate(sphinxy_context):
             logger.debug(f"Interaction {i}: {interaction}")
 
-        response = self.client.chat.completions.create(
-            model=self.model_path,
-            messages=sphinxy_context,
-            temperature=0.4,
-            stream=True,
-        )
+        response = self.model.generate_response(sphinxy_context, stream=True)
 
         return response
