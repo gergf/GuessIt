@@ -26,9 +26,7 @@ GAME_DESCRIPTION = """
 
 
 def initialize_game():
-    """
-    Initializes or retrieves variables for the game from session state.
-    """
+    """Initializes or retrieves variables for the game from session state."""
     if "llm_model" not in st.session_state:
         client = OpenAI(api_key="free_models", base_url=LLM_SERVER_URL + "v1")
         st.session_state.llm_model = LLModel(model_path=str(MODEL_PATH), client=client)
@@ -36,14 +34,41 @@ def initialize_game():
         st.session_state.game = BasicGame()
 
 
+def handle_submit_guess(user_guess: str, game: BasicGame) -> BasicGame:
+    """Handles the user's guess submission."""
+    current_level: Level = game.get_current_level()
+
+    logger.info(f"User guess: {user_guess}")
+    if user_guess == "":
+        msg = "Oops! It looks like you forgot to type the secret-key. Try again."
+        is_correct = False
+    else:
+        is_correct, msg = current_level.check_answer(user_guess)
+
+    # Make sphinxy answer in the chat
+    st.chat_message("Sphinxy", avatar="🦁").markdown(msg)
+
+    if is_correct:
+        game.increase_one_level()
+        if game.is_game_over():
+            st.success("🎉🎉 Congratulations! You finished the game! 🎉🎉")
+        else:
+            current_level = game.get_current_level()
+            congrats_msg = f"""
+                "Welcome to Level {current_level.number} 🔥 This one will be harder 😈"
+            """
+            st.success(congrats_msg)
+
+    return game
+
+
 def launch_game_loop():
     """Entry point for the game in the terminal version."""
     logger.info("Game started.")
     initialize_game()
     game = st.session_state.game
-    current_level: Level = game.get_current_level()
 
-    st.title(f"- Level {current_level.number} -")
+    st.title(f"- Level {game.get_current_level().number} -")
 
     if st.session_state.get("first_run", True):
         st.subheader(GAME_HEADER, anchor=None, help=None, divider=False)
@@ -67,26 +92,7 @@ def launch_game_loop():
             )
 
         if submit_button:
-            logger.info(f"User guess: {user_guess}")
-            if user_guess == "":
-                msg = "Oops! It looks like you forgot to type the secret-key. Try again."
-                is_correct = False
-            else:
-                is_correct, msg = current_level.check_answer(user_guess)
-
-            # Make sphinxy answer in the chat
-            st.chat_message("Sphinxy", avatar="🦁").markdown(msg)
-
-            if is_correct:
-                game.increase_one_level()
-                if game.is_game_over():
-                    st.success("🎉🎉 Congratulations! You finished the game! 🎉🎉")
-                else:
-                    current_level = game.get_current_level()
-                    congrats_msg = f"""
-                        "Welcome to Level {current_level.number} 🔥 This one will be harder 😈"
-                    """
-                    st.success(congrats_msg)
+            game = handle_submit_guess(user_guess, game)
 
     # show previous interactions, if any
     for interaction in st.session_state.session_memory:
@@ -102,7 +108,7 @@ def launch_game_loop():
             # Call to the AI model
             llm_model: LLModel = st.session_state.llm_model
             stream = llm_model.generate_response(
-                prompt, current_level, memory=st.session_state.session_memory
+                prompt, game.get_current_level(), memory=st.session_state.session_memory
             )
             response = st.write_stream(stream)
 
