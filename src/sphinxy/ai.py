@@ -26,7 +26,7 @@ class Interaction:
             raise ValueError(f"Role must be a valid OPENAI role. Example {VALID_OPENAI_ROLES}")
 
 
-class LLModel:
+class Sphinxy:
     """
     Class to represent the Sphinxy in the game.
     It implements an AI that can answer questions from the user.
