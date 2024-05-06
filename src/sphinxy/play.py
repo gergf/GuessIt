@@ -77,6 +77,8 @@ def handle_user_prompt(prompt: str, game: BasicGame):
         stream = sphinxy.generate_response(
             prompt, game.get_current_level(), memory=st.session_state.session_memory
         )
+        # TODO: check if the answer contains the secrect key, if so, replace with ****.
+        # in order to do this you'll need to access the response and modify it before displaying it
         full_response = st.write_stream(stream)
 
     # Save the conversation in the session memory
