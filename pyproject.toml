@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "GuessIt"
 version = "0.0.1"
-description = "GuessIt is a puzzle name for those who like to be challenged."
+description = "GuessIt is a puzzle game for those who like to be challenged."
 authors = ["German Garcia Ferrando <garferger@gmail.com>"]
 packages = [{include = "sphinxy", from="src"}]
 
