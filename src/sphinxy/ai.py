@@ -49,7 +49,8 @@ class LLM_Model:
             - stream: Whether to stream the response or not.
         """
         return self.client.chat.completions.create(
-            model=self.model_path,
+            # model=self.model_path,
+            model="gpt-3.5-turbo",
             messages=messages,
             temperature=temperature,
             stream=stream,
