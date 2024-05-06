@@ -23,6 +23,10 @@ GAME_DESCRIPTION = """
     Can you reach the end of the game?
     Good luck! 🍀
 """
+END_GAME_MESSAGE = """
+    Thansk for playing! 🎮 We hope you enjoyed it.
+    We'll be creating new levels as we receive feedback from you (:
+"""
 
 
 def initialize_game():
@@ -64,7 +68,7 @@ def handle_submit_guess(user_guess: str, game: BasicGame) -> BasicGame:
     if is_correct:
         game.increase_one_level()
         if game.is_game_over():
-            st.success("🎉🎉 Congratulations! You finished the game! 🎉🎉")
+            st.rerun()
         else:
             current_level = game.get_current_level()
             congrats_msg = f"""
@@ -99,6 +103,12 @@ def launch_game_loop():
     initialize_game()
     game = st.session_state.game
 
+    if game.is_game_over():
+        st.title("YOU'RE OUR (S)HERO!")
+        st.subheader("Congratulations! You finished the game! 🎉🎉 ")
+        st.markdown(END_GAME_MESSAGE)
+        return
+
     if st.session_state.get("first_run", True):
         st.subheader(GAME_HEADER, anchor=None, help=None, divider=False)
         st.markdown(GAME_DESCRIPTION)
@@ -113,6 +123,7 @@ def launch_game_loop():
                 label="Do you know the secret-key?",
                 placeholder="Type the secret-key here...",
                 key="user_guess",
+                help="Press the submit button to check if you guessed it right.",
                 label_visibility="collapsed",
             )
 
@@ -121,7 +132,7 @@ def launch_game_loop():
                 "Submit", key="submit_guess", help="Click to submit your guess.", type="primary"
             )
 
-        if submit_button:
+        if submit_button or user_guess:
             game = handle_submit_guess(user_guess, game)
 
     # show previous interactions, if any
