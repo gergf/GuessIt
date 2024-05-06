@@ -66,9 +66,9 @@ class BasicGame(Game):
 
     LEVELS = [
         Level(1, "peanut", LEVEL_ONE_EXTRA),
-        Level(2, "light", LEVEL_TWO_EXTRA),
+        Level(2, "submarine", LEVEL_TWO_EXTRA),
         Level(3, "napoleon", LEVEL_THREE_EXTRA),
-        Level(4, "hemisphere", LEVEL_FOUR_EXTRA),
+        Level(4, "moon", LEVEL_FOUR_EXTRA, "word_reverse"),
         Level(5, "octopus", LEVEL_FIVE_EXTRA),
     ]
 

@@ -72,14 +72,24 @@ def handle_user_prompt(prompt: str, game: BasicGame):
     """Handles the user's prompt and generates a response from Sphinxy."""
     st.session_state.processing_request = True
     sphinxy: Sphinxy = st.session_state.sphinxy
+    current_level: Level = game.get_current_level()
 
     with st.chat_message("Spninxy", avatar="🦁"):
         stream = sphinxy.generate_response(
-            prompt, game.get_current_level(), memory=st.session_state.session_memory
+            prompt, current_level, memory=st.session_state.session_memory
         )
-        # TODO: check if the answer contains the secrect key, if so, replace with ****.
-        # in order to do this you'll need to access the response and modify it before displaying it
-        full_response = st.write_stream(stream)
+
+        message = st.empty()
+        full_response = ""  # contains the full response to save in the memory
+        printed_response = ""  # reversed full_response to show in the chat
+        for chunk in stream:
+            chnk_msg = chunk.choices[0].delta.content
+            if chnk_msg is not None:
+                full_response += chnk_msg
+                # for the user
+                reverse_pp = current_level.postprocessing == "word_reverse"
+                printed_response += chnk_msg[::-1] if reverse_pp else chnk_msg
+            message.markdown(printed_response)
 
     # Save the conversation in the session memory
     st.session_state.session_memory.append(Interaction("user", prompt))
@@ -97,13 +107,15 @@ def launch_game_loop():
         st.subheader("Congratulations! You finished the game! 🎉🎉 ")
         st.markdown(END_GAME_MESSAGE)
         return
+    else:
+        current_level = game.get_current_level()
 
     if st.session_state.get("first_run", True):
         st.subheader(GAME_HEADER, anchor=None, help=None, divider=False)
         st.markdown(GAME_DESCRIPTION)
         st.session_state.first_run = False
     else:
-        st.title(f"- Level {game.get_current_level().number} -")
+        st.title(f"- Level {current_level.number} -")
         # Start submit layout
         left_side, space_for_button = st.columns([5, 1])
 
@@ -127,7 +139,12 @@ def launch_game_loop():
     for interaction in st.session_state.session_memory:
         avatar = "🦁" if interaction.role == "assistant" else None
         with st.chat_message(interaction.role, avatar=avatar):
-            st.markdown(interaction.message)
+            is_asistant = interaction.role == "assistant"
+            if (is_asistant) and (current_level.postprocessing == "word_reverse"):
+                reversed_words = " ".join([x[::-1] for x in interaction.message.split(" ")])
+                st.markdown(reversed_words)
+            else:
+                st.markdown(interaction.message)
 
     # communicate with sphinxy
     if prompt := st.chat_input("Ask Sphinxy a question (:"):
