@@ -1,3 +1,4 @@
+import time
 from collections import deque
 
 import streamlit as st
@@ -55,9 +56,14 @@ def handle_submit_guess(user_guess: str, game: BasicGame) -> BasicGame:
             congrats_msg = f"""
                 "Welcome to Level {current_level.number} 🔥 This one will be harder 😈"
             """
-            st.success(congrats_msg)
+            container = st.empty()
+            container.success(congrats_msg)
+            time.sleep(2)
+            container.empty()
+
             # clean memory
             st.session_state.session_memory = deque(maxlen=MAX_MEMORY)
+            st.rerun()
 
     return game
 
@@ -104,7 +110,6 @@ def launch_game_loop():
                 label="Do you know the secret-key?",
                 placeholder="Type the secret-key here...",
                 key="user_guess",
-                help="Press the submit button to check if you guessed it right.",
                 label_visibility="collapsed",
             )
 
@@ -113,7 +118,7 @@ def launch_game_loop():
                 "Submit", key="submit_guess", help="Click to submit your guess.", type="primary"
             )
 
-        if submit_button or user_guess:
+        if submit_button:
             game = handle_submit_guess(user_guess, game)
 
     # show previous interactions, if any
