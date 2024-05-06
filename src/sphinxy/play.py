@@ -134,5 +134,4 @@ def launch_game_loop():
         handle_user_prompt(prompt, game)
 
 
-if __name__ == "__main__":
-    launch_game_loop()
+launch_game_loop()
