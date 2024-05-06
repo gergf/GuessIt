@@ -1,6 +1,8 @@
-# GuessIt!
+# Sphinxy!
 
-GuessIt is a puzzle name for those who like to be challenged.
+Play the game [here](https://sphinxy.streamlit.app/)!
+
+Sphinxy is a puzzle name for those who like to be challenged.
 
 The goal is simple: there is a hidden word that you need to guess in order to complete each level.
 
@@ -17,11 +19,3 @@ Sphinxy salutes you!
 <p align="center">
     <img src="docs/images/sphinxy_v1.webp" alt="Sphinxy" width="200"/>
 </p>
-
-### Set up
-
-These instructions are for development. User-level instructions WIP.
-
-0. Move to the project directory: `guessit/src/sphinxy`
-1. Start the LLM server: `python -m llama_cpp.server --model models/Meta-Llama-3-8B-Instruct-Q8_0.gguf --n_gpu -1`
-2. Start the game: `streamlit run play.py`
