@@ -13,6 +13,7 @@ logger = setup_logger()
 # TODO: Move to config
 LLM_SERVER_URL: str = "http://localhost:8000/"
 MODEL_PATH: Path = Path("models/Meta-Llama-3-8B-Instruct-Q8_0.gguf")
+MAX_MEMORY = 24
 
 GAME_HEADER = "Welcome adventurer! You just have entered Level 1 of the Sphinxy Game. 🦁"
 GAME_DESCRIPTION = """
@@ -34,7 +35,7 @@ def initialize_game():
         st.session_state.sphinxy = Sphinxy(model=st.session_state.llm_model)
 
         # Keeps track fo multiple interactions, which allows the user to have a proper conversation
-        st.session_state.session_memory = deque(maxlen=10)
+        st.session_state.session_memory = deque(maxlen=MAX_MEMORY)
 
         # Keeps track of the levels and the game state
         st.session_state.game = BasicGame()
@@ -70,6 +71,8 @@ def handle_submit_guess(user_guess: str, game: BasicGame) -> BasicGame:
                 "Welcome to Level {current_level.number} 🔥 This one will be harder 😈"
             """
             st.success(congrats_msg)
+            # clean memory
+            st.session_state.session_memory = deque(maxlen=MAX_MEMORY)
 
     return game
 
@@ -96,13 +99,12 @@ def launch_game_loop():
     initialize_game()
     game = st.session_state.game
 
-    st.title(f"- Level {game.get_current_level().number} -")
-
     if st.session_state.get("first_run", True):
         st.subheader(GAME_HEADER, anchor=None, help=None, divider=False)
         st.markdown(GAME_DESCRIPTION)
         st.session_state.first_run = False
     else:
+        st.title(f"- Level {game.get_current_level().number} -")
         # Start submit layout
         left_side, space_for_button = st.columns([5, 1])
 
