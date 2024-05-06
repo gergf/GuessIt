@@ -11,7 +11,7 @@ GAME_DESCRIPTION = """
     Good luck! 🍀
 """
 END_GAME_MESSAGE = """
-    Thansk for playing! 🎮 We hope you enjoyed it.
+    Thanks for playing! 🎮 We hope you enjoyed it.
     We'll be creating new levels as we receive feedback from you (:
 """
 
