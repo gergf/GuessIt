@@ -6,7 +6,6 @@ from openai import OpenAI
 
 from ai import Sphinxy, Interaction, LLM_Model
 from levels import BasicGame, Level
-from utils import check_requirements
 from log_config import setup_logger
 
 logger = setup_logger()
@@ -136,8 +135,4 @@ def launch_game_loop():
 
 
 if __name__ == "__main__":
-    if not st.session_state.get("requirements_checked", False):
-        check_requirements(MODEL_PATH, LLM_SERVER_URL)
-        st.session_state.requirements_checked = True
-
     launch_game_loop()
