@@ -81,11 +81,9 @@ def handle_user_prompt(prompt: str, game: BasicGame):
     sphinxy: Sphinxy = st.session_state.sphinxy
 
     with st.chat_message("Spninxy", avatar="🦁"):
-        response = sphinxy.generate_response(
+        stream = sphinxy.generate_response(
             prompt, game.get_current_level(), memory=st.session_state.session_memory
         )
-
-        stream = response.choices[0].message.content
         full_response = st.write_stream(stream)
 
     # Save the conversation in the session memory
