@@ -12,7 +12,7 @@ streamlit = "^1.33.0"
 
 [tool.poetry.dev-dependencies]
 black = "*"
-pre-commet = "*"
+pre-commit = "*"
 flake8 = "*"
 pytest = "^7.0"
 pytest-cov = "*"
