@@ -29,7 +29,8 @@ def initialize_game():
     """Initializes or retrieves variables for the game from session state."""
     if not st.session_state.get("game_initialized", False):
         # Model initialization
-        client = OpenAI(api_key="free_models", base_url=LLM_SERVER_URL + "v1")
+        # client = OpenAI(api_key="free_models", base_url=LLM_SERVER_URL + "v1")
+        client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
         st.session_state.llm_model = LLM_Model(model_path=str(MODEL_PATH), client=client)
         st.session_state.sphinxy = Sphinxy(model=st.session_state.llm_model)
 
@@ -77,30 +78,19 @@ def handle_submit_guess(user_guess: str, game: BasicGame) -> BasicGame:
 def handle_user_prompt(prompt: str, game: BasicGame):
     """Handles the user's prompt and generates a response from Sphinxy."""
     st.session_state.processing_request = True
+    sphinxy: Sphinxy = st.session_state.sphinxy
 
     with st.chat_message("Spninxy", avatar="🦁"):
-        # Call to the AI model
-        stream = st.session_state.sphinxy.generate_response(
+        response = sphinxy.generate_response(
             prompt, game.get_current_level(), memory=st.session_state.session_memory
         )
 
-        # Print message
-        response = ""
-        message = st.empty()
-        for chunk in stream:
-            chnk_msg = chunk.choices[0].delta.content
-            if chnk_msg is not None:
-                response += chnk_msg
-            message.markdown(response)
-
-            # Check if the conversation is finished to reactive the chat
-            finish_reason = chunk.choices[0].finish_reason
-            if finish_reason in ("stop", "length"):
-                st.session_state.processing_request = False
+        stream = response.choices[0].message.content
+        full_response = st.write_stream(stream)
 
     # Save the conversation in the session memory
     st.session_state.session_memory.append(Interaction("user", prompt))
-    st.session_state.session_memory.append(Interaction("assistant", response))
+    st.session_state.session_memory.append(Interaction("assistant", full_response))
 
 
 def launch_game_loop():

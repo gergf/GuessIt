@@ -37,7 +37,6 @@ def ping_server(url: str) -> bool:
         return False
 
 
-# TODO: Move to utils
 def check_requirements(model_path: Path, llm_server_url: str):
     """Checks if the required models are available."""
     logger.info("Checking LLM model is present in the local filesystem...")
