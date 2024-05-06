@@ -1,41 +1,22 @@
-from pathlib import Path
 from collections import deque
 
 import streamlit as st
 from openai import OpenAI
 
+from config import GAME_DESCRIPTION, GAME_HEADER, END_GAME_MESSAGE, MAX_MEMORY
 from ai import Sphinxy, Interaction, LLM_Model
 from levels import BasicGame, Level
 from log_config import setup_logger
 
 logger = setup_logger()
 
-# TODO: Move to config
-LLM_SERVER_URL: str = "http://localhost:8000/"
-MODEL_PATH: Path = Path("models/Meta-Llama-3-8B-Instruct-Q8_0.gguf")
-MAX_MEMORY = 24
-
-GAME_HEADER = "Welcome adventurer! You just have entered Level 1 of the Sphinxy Game. 🦁"
-GAME_DESCRIPTION = """
-    Sphinxy is a magical and cute sphinx who is hidding a scret key to the next level.
-    Your goal is to convince Sphinxy to reveal the secret key to you by asking questions.
-    There are 5 levels in total. Each level is harder the previous one.
-    Can you reach the end of the game?
-    Good luck! 🍀
-"""
-END_GAME_MESSAGE = """
-    Thansk for playing! 🎮 We hope you enjoyed it.
-    We'll be creating new levels as we receive feedback from you (:
-"""
-
 
 def initialize_game():
     """Initializes or retrieves variables for the game from session state."""
     if not st.session_state.get("game_initialized", False):
         # Model initialization
-        # client = OpenAI(api_key="free_models", base_url=LLM_SERVER_URL + "v1")
         client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-        st.session_state.llm_model = LLM_Model(model_path=str(MODEL_PATH), client=client)
+        st.session_state.llm_model = LLM_Model(client=client)
         st.session_state.sphinxy = Sphinxy(model=st.session_state.llm_model)
 
         # Keeps track fo multiple interactions, which allows the user to have a proper conversation
