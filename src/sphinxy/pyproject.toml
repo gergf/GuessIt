@@ -1,18 +1,17 @@
-[project]
+[tool.poetry]
 name = "GuessIt"
 version = "0.0.1"
 description = "GuessIt is a puzzle name for those who like to be challenged."
-authors = [{name="German Garcia", email="garferger@gmail.com"}]
-dependencies = ["openai", "streamlit"]
+authors = ["German Garcia Ferrando <garferger@gmail.com>"]
 
+[tool.poetry.dependencies]
+python = "^3.10"
+openai = "^1.23.3"
+streamlit = "^1.33.0"
 
-[project.optional-dependencies]
-test = [
-    "pytest>=7.0",
-    "pytest-cov",
-]
-develop = [
-    "black",
-    "pre-commit",
-    "flake8"
-]
+[tool.poetry.dev-dependencies]
+black = "*"
+pre-commet = "*"
+flake8 = "*"
+pytest = "^7.0"
+pytest-cov = "*"
